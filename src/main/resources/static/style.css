@@ -8,17 +8,14 @@ body {
 }
 
 .chat_window {
-    position: absolute;
-    width: calc(100% - 20px);
+    display: flex;
+    flex-direction: column;
+    height: 800px; /* или 100% если родитель ограничивает */
     max-width: 800px;
-    height: 500px;
+    margin: auto;
     border-radius: 10px;
-    background-color: #fff;
-    left: 50%;
-    top: 50%;
-    transform: translateX(-50%) translateY(-50%);
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
     background-color: #f8f8f8;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
     overflow: hidden;
 }
 
@@ -56,12 +53,10 @@ body {
 }
 
 .messages {
-    position: relative;
-    list-style: none;
+    flex: 1;
+    overflow-y: auto;
     padding: 20px 10px 0 10px;
     margin: 0;
-    height: 347px;
-    overflow: scroll;
 }
 .messages .message {
     clear: both;
@@ -145,8 +140,7 @@ body {
     width: 100%;
     background-color: #fff;
     padding: 20px 20px;
-    position: absolute;
-    bottom: 0;
+
 }
 .bottom_wrapper .message_input_wrapper {
     display: inline-block;
@@ -192,4 +186,41 @@ body {
 
 .message_template {
     display: none;
+}
+.input_group {
+    display: flex;
+    gap: 10px; /* расстояние между полями */
+    width: calc(100% - 160px); /* оставляем место для кнопки Send */
+}
+
+.message_input_wrapper,
+.nickname_input_wrapper {
+    flex: 1; /* оба поля занимают равное пространство */
+    height: 50px;
+    border-radius: 25px;
+    border: 1px solid #bcbdc0;
+    position: relative;
+    padding: 0 20px;
+}
+
+.message_input,
+.nickname_input {
+    border: none;
+    height: 100%;
+    width: 100%;
+    outline: none;
+    color: gray;
+    box-sizing: border-box;
+}
+
+.button_group {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 15px;
+    gap: 10px;
+}
+
+.button_group .send_message {
+    flex: 1;
+    float: none;
 }

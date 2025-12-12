@@ -4,8 +4,13 @@
 
 
 var stompClient = null;
-
+var username = null
 function connect(){
+    username = document.querySelector("#nickname_input_value").value;
+    if (!username) {
+        alert("Введите никнейм!");
+        return;
+    }
 if (stompClient && stompClient.connect()){
     console.log("already connected")
     return;
@@ -16,16 +21,22 @@ if (stompClient && stompClient.connect()){
         console.log("connected" + frame);
         stompClient.subscribe('/topic/messages', function (response) {
             var data = JSON.parse(response.body);
-            draw("left", data.message);
+            draw("left", data.message,data.username);
         });
+        stompClient.send("/app/addUser", {}, JSON.stringify({
+            'username': username,
+            'message': username + " joined the chat"
+        }));
     });
+
 }
 
-function draw(side,text){
+function draw(side,text,username){
     console.log("drawing..")
     var $message;
     $message = $($('.message_template').clone().html());
     $message.addClass(side).find('.text').html(text);
+    $message.find('.username').html(username);
     $('.messages').append($message);
     return setTimeout(function () {
         return $message.addClass('appeared');
@@ -37,5 +48,8 @@ function disconnect(){
     stompClient.disconnect();
 }
 function sendMessage(){
-    stompClient.send("/app/message", {}, JSON.stringify({'message': $("#message_input_value").val()}));
+    stompClient.send("/app/message", {}, JSON.stringify({
+        'message': $("#message_input_value").val(),
+        'username': $("#nickname_input_value").val()
+    }));
 }

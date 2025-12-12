@@ -8,18 +8,18 @@ import jakarta.persistence.Id;
 @Entity
 public class Message {
 
-    private String sender;
+    private String username;
     private String message;
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    public String getSender() {
-        return sender;
+    public String getUsername() {
+        return username;
     }
 
-    public void setSender(String sender) {
-        this.sender = sender;
+    public void setUsername(String username) {
+        this.username = username;
     }
 
     public String getMessage() {
@@ -32,7 +32,7 @@ public class Message {
 
     @Override
     public String toString() {
-        return "Message [sender=" + sender + ", message=" + message + "]";
+        return "Message [sender=" + username + ", message=" + message + "]";
     }
 
     public void setId(Long id) {
