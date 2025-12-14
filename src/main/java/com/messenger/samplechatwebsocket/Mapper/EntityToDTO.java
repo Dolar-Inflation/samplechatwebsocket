@@ -12,9 +12,9 @@ public class EntityToDTO {
 
 
 
-    public Object toEntity(Object dto, Object entity) {
+    public <T> T toEntity(Object dto, Class<T> entity) {
 
-      return mapper.convertValue(dto, entity.getClass());
+      return  mapper.convertValue(dto, entity);
 
     }
 

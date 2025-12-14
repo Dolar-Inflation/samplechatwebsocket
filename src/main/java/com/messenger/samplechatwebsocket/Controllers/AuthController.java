@@ -17,7 +17,7 @@ public class AuthController {
     private final EntityToDTO entityToDTO ;
     private final UsersRepository usersRepository;
 
-    public AuthController(EntityToDTO entityToDTO, UsersRepository usersRepository, UsersRepository usersRepository1) {
+    public AuthController(EntityToDTO entityToDTO,  UsersRepository usersRepository1) {
         this.entityToDTO = entityToDTO;
 
 
@@ -39,6 +39,24 @@ public class AuthController {
         Users users = (Users) entityToDTO.toEntity(usersDTO,Users.class);
         usersRepository.save(users);
         return usersDTO;
+    }
+
+    @MessageMapping("/LoginUser")
+    @SendTo("/topic/messages")
+    public UsersDTO loginUser(UsersDTO usersDTO) {
+        System.out.println("Login attempt: " + usersDTO);
+
+        Users user = usersRepository.findByUsername(usersDTO.getUsername());
+        if (user == null) {
+            return new UsersDTO("ERROR: user not found", null);
+        }
+
+        if (!user.getPassword().equals(usersDTO.getPassword())) {
+            return new UsersDTO("ERROR: wrong password", null);
+        }
+
+
+        return new UsersDTO(user.getUsername(), null);
     }
 
 
