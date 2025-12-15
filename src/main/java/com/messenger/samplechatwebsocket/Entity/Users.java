@@ -18,7 +18,10 @@ public class Users {
     @Getter
     @Setter
     private String password;
-
+    @Getter
+    @Setter
+    @Column(nullable = false)
+    private String role = "employee";
 
 
 

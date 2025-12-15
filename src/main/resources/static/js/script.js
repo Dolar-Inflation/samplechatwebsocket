@@ -1,4 +1,3 @@
-
 var stompClient = null;
 var username = null;
 
@@ -7,7 +6,6 @@ function initNicknameFromSession() {
         const stored = sessionStorage.getItem('chat_nickname');
         if (stored) {
             username = stored;
-            // подставляем в поле, делаем его readonly чтобы пользователь видел ник
             const nickInput = document.querySelector("#nickname_input_value");
             if (nickInput) {
                 nickInput.value = username;
@@ -19,11 +17,10 @@ function initNicknameFromSession() {
     }
 }
 
-function connect(){
-    // если username уже задан из sessionStorage — используем его,
-    // иначе читаем из поля ввода
+function connect() {
     if (!username) {
-        username = document.querySelector("#nickname_input_value").value;
+        const input = document.querySelector("#nickname_input_value");
+        username = input ? input.value.trim() : null;
     }
     if (!username) {
         alert("Введите никнейм!");
@@ -37,11 +34,24 @@ function connect(){
 
     var socket = new SockJS('/websocket');
     stompClient = Stomp.over(socket);
-    stompClient.connect({},function (frame) {
+    stompClient.debug = null;
+
+    stompClient.connect({}, function(frame) {
         console.log("connected " + frame);
-        stompClient.subscribe('/topic/messages', function (response) {
-            var data = JSON.parse(response.body);
-            draw("left", data.message, data.username);
+        stompClient.subscribe('/topic/messages', function(response) {
+            const body = response && response.body;
+            if (!body) return;
+            const firstChar = body.trim()[0];
+            if (firstChar !== '{' && firstChar !== '[') {
+                console.warn('Non-JSON WS message:', body);
+                return;
+            }
+            try {
+                var data = JSON.parse(body);
+                draw("left", data.message, data.username);
+            } catch (e) {
+                console.error('Failed to parse WS JSON:', e, body);
+            }
         });
         stompClient.send("/app/addUser", {}, JSON.stringify({
             'username': username,
@@ -49,11 +59,13 @@ function connect(){
         }));
     }, function(error) {
         console.error('STOMP connect error', error);
+        stompClient = null;
+        // можно добавить авто‑переподключение при желании
     });
 }
 
-function draw(side,text,username){
-    console.log("drawing..")
+function draw(side, text, username) {
+    console.log("drawing..");
     var $message;
     $message = $($('.message_template').clone().html());
     $message.addClass(side).find('.text').html(text);
@@ -64,16 +76,15 @@ function draw(side,text,username){
     }, 0);
 }
 
-function disconnect(){
+function disconnect() {
     if (stompClient) {
         stompClient.disconnect();
         stompClient = null;
     }
 }
 
-function sendMessage(){
+function sendMessage() {
     const message = $("#message_input_value").val();
-    // используем username из sessionStorage или поле
     const nick = username || $("#nickname_input_value").val();
     if (!message || !nick) {
         alert('Введите сообщение и никнейм');
@@ -83,13 +94,13 @@ function sendMessage(){
         'message': message,
         'username': nick
     }));
-    // очистим поле сообщения
     $("#message_input_value").val('');
 }
 
-// Инициализация при загрузке страницы
 document.addEventListener('DOMContentLoaded', function() {
     initNicknameFromSession();
-    // если хотите автоматически подключаться при наличии ника:
-    // if (sessionStorage.getItem('chat_nickname')) connect();
+    // Автоподключение, если ник уже есть (после логина)
+    if (sessionStorage.getItem('chat_nickname')) {
+        connect();
+    }
 });

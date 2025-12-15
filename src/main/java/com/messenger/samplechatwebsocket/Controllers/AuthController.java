@@ -5,58 +5,83 @@ import com.messenger.samplechatwebsocket.Entity.Users;
 import com.messenger.samplechatwebsocket.Mapper.EntityToDTO;
 import com.messenger.samplechatwebsocket.Repository.UsersRepository;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
+import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
+
+import java.util.ArrayList;
 
 @Controller
 public class AuthController {
 
-
-    private final EntityToDTO entityToDTO ;
+    private final EntityToDTO entityToDTO;
     private final UsersRepository usersRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public AuthController(EntityToDTO entityToDTO,  UsersRepository usersRepository1) {
+    public AuthController(EntityToDTO entityToDTO,
+                          UsersRepository usersRepository,
+                          PasswordEncoder passwordEncoder) {
         this.entityToDTO = entityToDTO;
-
-
-
-        this.usersRepository = usersRepository1;
-
+        this.usersRepository = usersRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
-
-    @GetMapping("/")
-    public String auth(){
+    @GetMapping("/start")
+    public String auth() {
         return "redirect:/auth.html";
     }
-    @MessageMapping("/RegisterUser")
-    @SendTo("/topic/messages")
-    public UsersDTO registerUser(UsersDTO usersDTO){
+    @PostMapping("/api/login")
+    public ResponseEntity<?> login(@RequestBody UsersDTO usersDTO, HttpServletRequest request) {
+        Users user = usersRepository.findByUsername(usersDTO.getUsername())
+                .orElseThrow(() -> new RuntimeException("User not found"));
 
-        System.out.println(usersDTO);
-        Users users = (Users) entityToDTO.toEntity(usersDTO,Users.class);
-        usersRepository.save(users);
-        return usersDTO;
+        if (!passwordEncoder.matches(usersDTO.getPassword(), user.getPassword())) {
+
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new UsersDTO("ERROR", null));
+        }
+
+        Authentication auth = new UsernamePasswordAuthenticationToken(
+                user.getUsername(), null, new ArrayList<>());
+        SecurityContextHolder.getContext().setAuthentication(auth);
+
+        HttpSession session = request.getSession(true);
+        session.setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY,
+                SecurityContextHolder.getContext());
+
+        return ResponseEntity.ok(new UsersDTO(user.getUsername(), null));
     }
+    @PostMapping("/api/register")
+    public ResponseEntity<?> register(@RequestBody UsersDTO usersDTO, HttpServletRequest request) {
+        Users users = (Users) entityToDTO.toEntity(usersDTO, Users.class);
+        users.setPassword(passwordEncoder.encode(users.getPassword()));
+        usersRepository.save(users);
+        Authentication auth = new UsernamePasswordAuthenticationToken(
+                users.getUsername(), null, new ArrayList<>());
+        SecurityContextHolder.getContext().setAuthentication(auth);
 
-    @MessageMapping("/LoginUser")
-    @SendTo("/topic/messages")
-    public UsersDTO loginUser(UsersDTO usersDTO) {
-        System.out.println("Login attempt: " + usersDTO);
+        HttpSession session = request.getSession(true);
+        session.setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY,
+                SecurityContextHolder.getContext());
 
-        Users user = usersRepository.findByUsername(usersDTO.getUsername());
-        if (user == null) {
-            return new UsersDTO("ERROR: user not found", null);
-        }
+        return ResponseEntity.ok(new UsersDTO(users.getUsername(), null));
 
-        if (!user.getPassword().equals(usersDTO.getPassword())) {
-            return new UsersDTO("ERROR: wrong password", null);
-        }
-
-
-        return new UsersDTO(user.getUsername(), null);
     }
 
 

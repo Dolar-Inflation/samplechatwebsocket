@@ -39,7 +39,7 @@ private final EntityToDTO entityToDTO;
     @SendTo("/topic/messages")
     public MessageDTO addUser(MessageDTO chatMessage, SimpMessageHeaderAccessor headerAccessor) {
 
-        // Add username in web socket session
+
         System.out.println(chatMessage);
         Message entity = (Message) entityToDTO.toEntity(chatMessage,Message.class);
         messageRepository.save(entity);
