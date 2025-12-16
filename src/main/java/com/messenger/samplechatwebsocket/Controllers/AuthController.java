@@ -1,5 +1,6 @@
 package com.messenger.samplechatwebsocket.Controllers;
 
+import com.messenger.samplechatwebsocket.Configs.MyUserDetails;
 import com.messenger.samplechatwebsocket.DTO.UsersDTO;
 import com.messenger.samplechatwebsocket.Entity.Users;
 import com.messenger.samplechatwebsocket.Mapper.EntityToDTO;
@@ -56,9 +57,12 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(new UsersDTO("ERROR", null));
         }
+        MyUserDetails userDetails = new MyUserDetails(user);
+
 
         Authentication auth = new UsernamePasswordAuthenticationToken(
-                user.getUsername(), null, new ArrayList<>());
+                userDetails, null, userDetails.getAuthorities());
+
         SecurityContextHolder.getContext().setAuthentication(auth);
 
         HttpSession session = request.getSession(true);

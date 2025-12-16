@@ -2,17 +2,16 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Insert title here</title>
+    <title>Simple chat with file upload</title>
     <link href="/webjars/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet">
     <link href="/css/style.css" rel="stylesheet">
     <script src="/webjars/jquery/3.6.0/jquery.min.js"></script>
     <script src="/webjars/sockjs-client/1.5.1/sockjs.min.js"></script>
     <script src="/webjars/stomp-websocket/2.3.4/stomp.min.js"></script>
-
-    <script src="/js/script.js"></script>
 </head>
 <body>
 <h1>Simple chat</h1>
+
 <div class="chat_window">
     <div class="top_menu">
         <div class="buttons">
@@ -22,7 +21,9 @@
         </div>
         <div class="title">Chat</div>
     </div>
+
     <ul class="messages"></ul>
+
     <div class="bottom_wrapper clearfix">
         <div class="input_group">
             <div class="message_input_wrapper">
@@ -33,30 +34,38 @@
             </div>
         </div>
 
-
-
-
-
         <div class="button_group">
-            <div class="send_message" onclick="connect()">
+            <div class="send_message" id="connectBtn">
                 <div class="text">Connect to chat</div>
             </div>
-            <div class="send_message" onclick="sendMessage()">
+
+            <div class="send_message" id="sendBtn">
                 <div class="text">Send</div>
             </div>
-            <div class="send_message" onclick="disconnect()">
+
+            <div class="file_upload_wrapper">
+                <input type="file" id="fileInput" />
+                <button id="uploadBtn" class="btn btn-sm btn-primary">Upload file</button>
+            </div>
+
+            <div class="send_message" id="disconnectBtn">
                 <div class="text">Disconnect from chat</div>
             </div>
         </div>
     </div>
-
 </div>
-<div id="message_template" class="message_template">
-    <li class="message"><div class="avatar"></div>
+
+<div id="message_template" class="message_template" style="display:none;">
+    <li class="message">
+        <div class="avatar"></div>
         <div class="text_wrapper">
             <div class="text"></div>
-        </div><div class="username"></div>
+        </div>
+        <div class="username"></div>
     </li>
 </div>
+
+<!-- Link to external JS (below body so DOM exists) -->
+<script src="/js/script.js"></script>
 </body>
 </html>

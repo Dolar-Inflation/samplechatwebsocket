@@ -17,8 +17,10 @@
             <div class="input-group">
                 <label for="login-password">Пароль</label>
                 <input type="password" id="login-password" placeholder="Введите пароль" required>
+                <input type="hidden" name="_csrf" id="csrf-token" value="">
             </div>
             <button type="submit" class="btn">Войти</button>
+
         </form>
     </div>
 
@@ -37,7 +39,16 @@
         </form>
     </div>
 </div>
-
+<script>
+    // если вы используете CookieCsrfTokenRepository, токен лежит в cookie XSRF-TOKEN
+    function getCookie(name) {
+        return document.cookie.split('; ').reduce((r, v) => {
+            const parts = v.split('=');
+            return parts[0] === name ? decodeURIComponent(parts[1]) : r;
+        }, '');
+    }
+    document.getElementById('csrf-token').value = getCookie('XSRF-TOKEN');
+</script>
 <!-- Подключите библиотеки SockJS и Stomp перед auth.js -->
 <script src="/webjars/sockjs-client/1.5.1/sockjs.min.js"></script>
 <script src="/webjars/stomp-websocket/2.3.4/stomp.min.js"></script>
